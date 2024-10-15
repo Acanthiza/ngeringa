@@ -30,7 +30,7 @@
                      , col_names = TRUE
                      )
   
-  hab <-  rio::import("Ngeringa ALL survey data v3.xlsx"
+  hab <- rio::import("Ngeringa ALL survey data v3.xlsx"
                      , which = "Habitat Codes"
                      , setclass = "tibble"
                      , col_names = FALSE
@@ -40,6 +40,14 @@
                   , hab = gsub("Remant", "Remnant", hab)
                   )
   
+  epsg <- tibble::tribble(
+    ~ year, ~ epsg,
+    2019, 28354,
+    2020, 28354,
+    2021, 28354,
+    2023, 3857
+    ) %>%
+    dplyr::mutate(year = factor(year, ordered = TRUE))
   
   # data -------
   
@@ -59,89 +67,89 @@
                   , time = gsub("+10:30|010:30|009:30","",time)
                   , time = hms(time)
                   , year = year(date)
+                  , year = factor(year, ordered = TRUE)
                   ) %>%
     dplyr::mutate(use_hab = gsub("\\s.*|\\-.*|\\/.*", "", hab)) %>%
     dplyr::filter(!is.na(Count)) %>%
     dplyr::add_count(Species, name = "spp_n") %>%
     dplyr::add_count(use_hab, name = "hab_n")
   
-  datGeo <- st_as_sf(dat
-                     , coords = c("Long", "Lat")
-                     , crs = 4326
+  dat_sf <- dat %>%
+    dplyr::mutate(old_east = East
+                  , old_north = North
+                  ) %>%
+    dplyr::mutate(East = dplyr::if_else(year == 2023, old_north, old_east)
+                  , North = dplyr::if_else(year == 2023, old_east, old_north)
+                  ) %>%
+    tidyr::nest(data = -year) %>%
+    dplyr::left_join(epsg) %>%
+    dplyr::mutate(data = purrr::map2(data
+                                     , epsg
+                                     , \(x, y) sf::st_as_sf(x
+                                                            , coords = c("East", "North")
+                                                            , crs = y
+                                                            , remove = FALSE
+                                                            ) %>%
+                                       sf::st_transform(crs = 7854)
+                                     )
+                  ) %>%
+    tidyr::unnest(cols = data) %>%
+    sf::st_sf()
+  
+  
+  # Area -------
+  
+  hec <- dat_sf %>%
+    dplyr::summarise() %>%
+    sf::st_convex_hull() %>%
+    dplyr::mutate(hec = sf::st_area(geometry)
+                  , hec = as.numeric(hec / 10000)
+                  )
+  
+  tm_shape(hec) + tm_polygons(col = "year", alpha = 0.5)
+  
+  # naive occ -----
+  
+  occ <- dat %>%
+    dplyr::group_by(year, Species, strCommonName) %>%
+    dplyr::summarise(occ = sum(Count)) %>%
+    dplyr::ungroup() %>%
+    dplyr::cross_join(hec %>%
+                       sf::st_set_geometry(NULL)
                      ) %>%
-    sf::st_transform(crs = 7845)
-  
-  tm_shape(datGeo) +
-    tm_dots(col = "Species")
+    dplyr::mutate(occ = occ / hec) %>%
+    tidyr::pivot_wider(values_from = "occ", names_from = "year")
   
   
-  mod <- rstanarm::stan_glmer(Count ~ year + (year | Species) + (1 | use_hab)
-                              , data = dat
-                              , family = stats::poisson()
-                              )
+  rio::export(occ, "naive_occ.csv")
   
+  # maps ------
+  tmap_mode("view")
   
+  map <- dat_sf %>%
+    dplyr::group_by(year) %>%
+    dplyr::summarise() %>%
+    dplyr::ungroup() %>%
+    tm_shape() +
+    tm_dots(col = "year"
+            , palette = "viridis"
+            ) +
+    tm_shape(hec) +
+    tm_polygons(alpha = 0.5)
   
-  #----------Site raster----------
+  tmap::tmap_save(map, filename = "map.html")
   
-  if(FALSE) {
+  facets <- dat_sf %>%
+    dplyr::group_by(year) %>%
+    dplyr::summarise() %>%
+    dplyr::ungroup() %>%
+    tm_shape() +
+    tm_dots() +
+    tm_facets(by = "year") +
+    tm_shape(hec) +
+    tm_polygons(alpha = 0.5)
+
+  tmap_mode("plot")
   
-    #-------Satellite data---------
-  
-  siteExtent <- st_bbox(datGeo) %>%
-    st_as_sfc() %>%
-    st_buffer(50)
-  
-  ras_dir <- fs::path("H:"
-                      , "data"
-                      , "raster"
-                      , "aligned"
-                      , "sa_ibrasub_xn____0__30"
-                      )
-  
-  env_info <- envRaster::parse_env_tif(ras_dir, cube = FALSE) %>%
-    dplyr::filter(!is.na(band)) %>%
-    dplyr::mutate(name = paste0(band, "__", season))
-  
-  env <- terra::rast(env_info$path) %>%
-    terra::crop(siteExtent)
-  
-  names(env) <- env_info$name
-  
-    cell_vals <- datGeo %>%
-      dplyr::mutate(cell = terra::cellFromXY(env, sf::st_coordinates(datGeo))) %>%
-      st_set_geometry(NULL) %>%
-      as_tibble() %>%
-      dplyr::count(cell, use_hab, name = "value") %>%
-      dplyr::group_by(cell) %>%
-      dplyr::filter(value == max(value)) %>%
-      dplyr::slice(1) %>%
-      dplyr::ungroup() %>%
-      dplyr::mutate(value = as.numeric(as.factor(use_hab)))
-    
-    mod_data <- cell_vals %>%
-      dplyr::filter(!is.na(cell)
-                    , !is.na(use_hab)
-                    , !use_hab %in% c("Over", "Heard")
-                    ) %>%
-      dplyr::add_count(use_hab, name = "n") %>%
-      dplyr::filter(n > 3) %>%
-      dplyr::mutate(use_hab = forcats::fct_infreq(use_hab))
-    
-    env_data <- terra::extract(env, mod_data$cell)
-    
-    mod <- randomForest::randomForest(x = env_data
-                                      , y = mod_data$use_hab
-                                      , ntree = 3000
-                                      , sampsize = rep(min(table(mod_data$use_hab)), length(table(mod_data$use_hab)))
-                                      , mtry = 2
-                                      )
-    
-    pred <- terra::predict(env
-                           , mod
-                           )
-    
-    tm_shape(pred) + tm_raster(alpha = 0.8)
-    
-  }
+  tmap::tmap_save(facets, filename = "facets.png")
   
