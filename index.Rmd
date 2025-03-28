@@ -1,0 +1,68 @@
+---
+title: "ngeringa bird surveys"
+author:
+- Nigel Willoughby
+- Jody Gates
+date: "`r format(Sys.time(), '%A, %d %B, %Y. %H:%M')`"
+link-citations: yes
+bibliography: packages.bib
+description: "Results of bird surveys on ngeringa"
+---
+
+```{r setup, echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+
+  repo_link <- gsub("\\.git$", "", usethis::git_remotes()$origin)
+
+  #------Bibliography-------
+  
+  url <- "https://raw.githubusercontent.com/citation-style-language/styles/master/emu-austral-ornithology.csl"
+  download.file(url, "../common/bib_style.csl")
+  
+  
+  #--------knitr options--------
+  
+  knitr::opts_knit$set(eval.after = "fig.cap")
+  
+  
+  #-------chunk options-------
+
+  knitr::opts_chunk$set(echo = FALSE
+                        , warning = FALSE
+                        , error = FALSE
+                        , message = FALSE
+                        , tidy = TRUE
+                        , tidy.opts = list(comment = FALSE)
+                        #, dpi = 300
+                        #, fig.width = 7
+                        )
+
+  
+  #--------options-------
+
+  options(knitr.kable.NA = ""
+          , knitr.duplicate.label = "allow"
+          )
+
+
+  #------citations--------
+
+  # knitcitations::cleanbib()
+  # options("citation_format" = "pandoc")
+  
+  
+  #-------Rmd--------
+  
+  tmap::tmap_mode("plot")
+  
+  tmap::tmap_options(basemaps = c("OpenStreetMap.Mapnik"
+                                  , "Esri.WorldImagery"
+                                  )
+                     , limits = c(facets.view = 16)
+                     )
+
+```
+
+# Aim
+
+A dive into the bird data collected on ngeringa.
+

@@ -1,0 +1,43 @@
+
+```{r thisOne{{spID}}}
+
+spID <- "{{spID}}"
+
+```
+
+# `r unique(dat$strCommonName[dat$Species == spID])`
+
+## Map
+
+```{r map{{spID}}}
+
+naive_occ$data[naive_occ$Species == spID] |>
+  dplyr::bind_rows() |>
+  dplyr::mutate(year = lubridate::year(Date)
+                , year = factor(year)
+                ) |>
+  tm_shape() +
+    tm_dots(col = "year"
+            , palette = "viridis"
+            )
+
+```
+
+## Plot
+
+```{r plot{{spID}}}
+
+dat |>
+  dplyr::filter(hab != "oh"
+                , Species == spID
+                ) |>
+  dplyr::mutate(year = as.numeric(year)) |>
+  dplyr::group_by(strCommonName, year) |>
+  dplyr::summarise(n = sum(Count)) |>
+  dplyr::ungroup() |>
+  ggplot(aes(year, n)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(~ strCommonName)
+
+```

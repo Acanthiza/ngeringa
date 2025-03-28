@@ -1,0 +1,36 @@
+# Methods
+
+## Surveys
+
+Surveys occurred in the morning on one day in spring. Survey were occurred in each of `r length(unique(lubridate::year(dat$Date)))` years: `r envFunc::vec_to_sentence(unique(lubridate::year(dat$Date)))`.
+
+All individual birds were recorded directly into [Avenza](https://store.avenza.com/pages/app-features).
+
+## Analysis
+
+
+
+## Workflow
+
+The data import, cleaning, analysis and report writing were done in a scripted workflow using the programs `R` and 'R-studio Desktop'. [`R`](https://www.r-project.org/) [@R-base] is an open source software environment for statistical computing and graphics. Base R can be extended via a range of open source packages to enable specific tasks or analyses. The packages used to produce this report are listed in Table \@ref(tab:packages).
+
+[R-studio Desktop](https://posit.co/download/rstudio-desktop/) is a set of open source tools built to facilitate interaction with `R`.
+
+```{r packages}
+
+  knitr::kable(tibble::tibble(package = packages) %>%
+                 dplyr::mutate(citation = paste0("@R-"
+                                                 , package
+                                                 )
+                               ) %>%
+                 dplyr::left_join(tibble::as_tibble(devtools::session_info(include_base = TRUE)$packages)) %>%
+                 dplyr::select(package
+                               , citation
+                               , loadedversion
+                               , date
+                               , source
+                               )
+               , caption = "R [@R-base] packages used in the production of this report"
+               )
+
+```

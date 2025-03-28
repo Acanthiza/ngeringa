@@ -1,0 +1,23 @@
+
+```{r sp_rmd}
+
+  sp_rmd <- NULL
+
+  # this loops through sp_rmd.Rmd,
+
+  for (i in sort(unique(dat$Species))) {
+    
+    spID <- i
+    
+    sp_rmd <- c(sp_rmd, knit_expand(fs::path(here::here()
+                                           , "child"
+                                           , "sp.Rmd"
+                                           )
+                                  )
+               )
+    
+  }
+
+```
+
+`r paste(knit(text = sp_rmd), collapse = '\n')`

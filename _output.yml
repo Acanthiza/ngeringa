@@ -1,0 +1,17 @@
+bookdown::bs4_book:
+  theme:
+    primary: "#4D6F8D"
+  repo: https://github.com/acanthiza/ngeringa
+bookdown::gitbook:
+  css: style.css
+  config:
+    toc:
+      collapse: section
+      before: |
+        <li><a href="./">ngeringa birds</a></li>
+    toc_depth: 3
+    edit: https://github.com/acanthiza/ngeringa/edit/main/%s
+    download: []
+    sharing:
+      github: yes
+      
