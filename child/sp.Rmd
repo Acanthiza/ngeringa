@@ -31,7 +31,7 @@ dat |>
   dplyr::filter(hab != "oh"
                 , Species == spID
                 ) |>
-  dplyr::mutate(year = as.numeric(year)) |>
+  dplyr::mutate(year = as.numeric(as.character(year))) |>
   dplyr::group_by(strCommonName, year) |>
   dplyr::summarise(n = sum(Count)) |>
   dplyr::ungroup() |>
