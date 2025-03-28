@@ -11,8 +11,6 @@ description: "Results of bird surveys on ngeringa"
 
 ```{r setup, echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
 
-  repo_link <- gsub("\\.git$", "", usethis::git_remotes()$origin)
-
   #------Bibliography-------
   
   url <- "https://raw.githubusercontent.com/citation-style-language/styles/master/emu-austral-ornithology.csl"
@@ -52,7 +50,7 @@ description: "Results of bird surveys on ngeringa"
   
   #-------Rmd--------
   
-  tmap::tmap_mode("plot")
+  tmap::tmap_mode("view")
   
   tmap::tmap_options(basemaps = c("OpenStreetMap.Mapnik"
                                   , "Esri.WorldImagery"
