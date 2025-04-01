@@ -25,7 +25,6 @@ DT::datatable(dat_summary |>
 cat("<table>"
     , paste0("<caption>"
              , "(#tab:tabCellCount)"
-             , "caption"
              , "Species recorded: number of records, years and cells"
              , "</caption>"
              )
@@ -38,16 +37,17 @@ cat("<table>"
 ```{r map, results = "asis"}
 
 tm_shape(dat_sf) +
-  tm_dots(col = "year")
+  tm_dots(col = "year"
+          , palette = "plasma"
+          )
 
-cat("<figure>"
+cat("<fig>"
     , paste0("<caption>"
              , "(#fig:map)"
-             , "caption"
              , "Map of where records were taken"
              , "</caption>"
              )
-    , "</figure>"
+    , "</fig>"
     , sep ="\n"
     )
 
