@@ -15,6 +15,10 @@ dec_spp <- dat_summary |>
 
 ## Overall
 
+There were `r nrow(dat_summary)` different species recorded across the `r length(unique(dat$year))` years with data. The most common species was `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(Common)` with `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(records)` records.
+
+`r length(inc_spp) |> envFunc::numbers2words() |> stringr::str_to_sentence()` species appeared to increase over the years of the study`r if(length(inc_spp)) paste0(" (", envFunc::vec_to_sentence(inc_spp), ")")`, while `r length(dec_spp) |> envFunc::numbers2words()` species showed a decrease`r if(length(dec_spp)) paste0(" (", envFunc::vec_to_sentence(dec_spp), ")")`.
+
 The table below shows the:
 
 * species recorded
@@ -25,11 +29,7 @@ The table below shows the:
 
 Each cell was `r ras_res` by `r ras_res` metres.
 
-There were `r nrow(dat_summary)` different species recorded across the `r length(unique(dat$year))` years with data. The most common species was `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(Common)` with `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(records)` records.
-
-`r length(inc_spp) |> envFunc::numbers2words() |> stringr::str_to_sentence()` species appeared to increase over the years of the study `r if(length(inc_spp)) paste0("(", envFunc::vec_to_sentence(inc_spp), ")")`, while `r length(dec_spp) |> envFunc::numbers2words()` species showed a decrease `r if(length(dec_spp)) paste0("(", envFunc::vec_to_sentence(dec_spp), ")")`.
-
-Below the table is a map showing where records were taken.
+Below the table is a map showing where all records were taken.
 
 ```{r tabCellCount}
 
