@@ -18,11 +18,11 @@ dat_sf |>
                 ) |>
 tm_shape(bbox = sf::st_bbox(r_poly)) +
   tm_dots(col = "year"
-          , palette = "viridis"
+          , palette = "plasma"
           ) +
   tm_shape(r_poly) +
   tm_borders(col = "yellow"
-             , alpha = 0.5
+             , alpha = 0.2
              )
 
 ```

@@ -16,7 +16,7 @@ There were `r nrow(dat_summary)` different species recorded across the `r length
 
 Figure \@ref(fig:map) shows where records were taken across the property.
 
-```{r tabCellCount, , results = "asis", echo = FALSE}
+```{r tabCellCount, results = "asis"}
 
 DT::datatable(dat_summary |>
                dplyr::select(Common, records, years, cells)
@@ -35,7 +35,7 @@ cat("<table>"
 
 ```
 
-```{r map}
+```{r map, results = "asis"}
 
 tm_shape(dat_sf) +
   tm_dots(col = "year")
