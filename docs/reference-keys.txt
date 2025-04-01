@@ -1,6 +1,4 @@
 tab:packages
-tab:tabCellCount
-fig:map
 aim
 methods
 surveys

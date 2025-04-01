@@ -23,7 +23,8 @@ tm_shape(bbox = sf::st_bbox(r_poly)) +
   tm_shape(r_poly) +
   tm_borders(col = "yellow"
              , alpha = 0.2
-             )
+             ) +
+  tm_scale_bar()
 
 ```
 
