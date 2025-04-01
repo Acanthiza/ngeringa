@@ -1,6 +1,60 @@
 
 # Results
 
+## Overall
+
+Table \@ref(tab:tabCellCount) shows the:
+
+* species recorded
+* total number of records for a species
+* number of years in which a species was recorded; and
+* the number of cells in which a species was recorded.
+
+Each cell was `r ras_res` by `r ras_res` metres.
+
+There were `r nrow(dat_summary)` different species recorded across the `r length(unique(dat$year))` years with data. The most common species was `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(Common)` with `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(records)` records.
+
+Figure \@ref(fig:map) shows where records were taken across the property.
+
+```{r tabCellCount, , results = "asis", echo = FALSE}
+
+DT::datatable(dat_summary |>
+               dplyr::select(Common, records, years, cells)
+             )
+
+cat("<table>"
+    , paste0("<caption>"
+             , "(#tab:tabCellCount)"
+             , "caption"
+             , "Species recorded: number of records, years and cells"
+             , "</caption>"
+             )
+    , "</table>"
+    , sep ="\n"
+    )
+
+```
+
+```{r map}
+
+tm_shape(dat_sf) +
+  tm_dots(col = "year")
+
+cat("<figure>"
+    , paste0("<caption>"
+             , "(#fig:map)"
+             , "caption"
+             , "Map of where records were taken"
+             , "</caption>"
+             )
+    , "</figure>"
+    , sep ="\n"
+    )
+
+```
+
+## By species
+
 ```{r sp_rmd}
 
   sp_rmd <- NULL

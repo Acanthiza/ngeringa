@@ -1,10 +1,14 @@
 tab:packages
+tab:tabCellCount
+fig:map
 aim
 methods
 surveys
 analysis
 workflow
 results
+overall
+by-species
 australian-magpie
 map
 plot
@@ -146,3 +150,4 @@ plot-45
 yellow-thornbill
 map-46
 plot-46
+references

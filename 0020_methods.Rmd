@@ -18,19 +18,20 @@ The data import, cleaning, analysis and report writing were done in a scripted w
 
 ```{r packages}
 
-  knitr::kable(tibble::tibble(package = packages) %>%
-                 dplyr::mutate(citation = paste0("@R-"
-                                                 , package
-                                                 )
-                               ) %>%
-                 dplyr::left_join(tibble::as_tibble(devtools::session_info(include_base = TRUE)$packages)) %>%
-                 dplyr::select(package
-                               , citation
-                               , loadedversion
-                               , date
-                               , source
-                               )
-               , caption = "R [@R-base] packages used in the production of this report"
-               )
+knitr::kable(tibble::tibble(package = packages) %>%
+               dplyr::mutate(citation = paste0("@R-"
+                                               , package
+                                               )
+                             ) %>%
+               dplyr::left_join(tibble::as_tibble(devtools::session_info(include_base = TRUE)$packages)) %>%
+               dplyr::select(package
+                             , citation
+                             , loadedversion
+                             , date
+                             , source
+                             )
+             , caption = "R [@R-base] packages used in the production of this report"
+             ) |>
+  kableExtra::kable_styling("striped")
 
 ```

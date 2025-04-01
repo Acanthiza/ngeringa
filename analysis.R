@@ -145,8 +145,10 @@
   
   # raster ------
   
+  ras_res <- 50
+  
   r <- terra::rast(crs = paste0("epsg:", 3857)
-                   , resolution = c(50, 50)
+                   , resolution = c(ras_res, ras_res)
                    , extent = terra::ext(hec)
                    )
   
@@ -159,7 +161,7 @@
   tm_shape(dat_sf) +
     tm_dots(col = "year")
   
-  naive_occ <- dat_sf |>
+  naive_occ_year <- dat_sf |>
     tidyr::nest(data = -c(Species, year)) |>
     dplyr::mutate(r = purrr::map(data
                                   , \(x) terra::rasterize(x = terra::vect(x)
@@ -169,83 +171,53 @@
                                                           )
                                   )
                   , cells = purrr::map_dbl(r, \(x) as.numeric(terra::global(x, "sum", na.rm = TRUE)))
-                  )
+                  ) |>
+    dplyr::select(-data, - r) |>
+    dplyr::left_join(taxa |>
+                       dplyr::select(Species = strCode
+                                     , Common = strCommonName
+                                     )
+                     )
   
-  tm_shape(r_poly) +
-    tm_borders() +
-  tm_shape(naive_occ$r[[1]]) +
-    tm_raster() +
-  tm_shape(dat_sf |>
-             dplyr::filter(Species == naive_occ$Species[[1]])
-           ) +
-    tm_dots(col = "year")
+  naive_occ <- dat_sf |>
+    tidyr::nest(data = -c(Species)) |>
+    dplyr::mutate(r = purrr::map(data
+                                  , \(x) terra::rasterize(x = terra::vect(x)
+                                                          , y = r
+                                                          , field = "Count"
+                                                          , fun = \(x) length(x) > 0
+                                                          )
+                                  )
+                  , cells = purrr::map_dbl(r, \(x) as.numeric(terra::global(x, "sum", na.rm = TRUE)))
+                  ) |>
+    dplyr::select(-data, - r) |>
+    dplyr::left_join(taxa |>
+                       dplyr::select(Species = strCode
+                                     , Common = strCommonName
+                                     )
+                     )
   
-  
-  # JAG 24/02/2025
-  # PUT IN 1 HA GRID and do p/a within grid
   
   # total count -----
   
-  total_count <- dat %>%
+  total_count_year <- dat %>%
     dplyr::group_by(year, Species, strCommonName) %>%
-    dplyr::summarise(occ = sum(Count)) %>%
+    dplyr::summarise(total = sum(Count)) %>%
     dplyr::ungroup() %>%
-    tidyr::pivot_wider(values_from = "occ", names_from = "year")
+    tidyr::pivot_wider(values_from = "total", names_from = "year")
+  
+  total_count <- dat %>%
+    dplyr::group_by(Species, strCommonName) %>%
+    dplyr::summarise(records = sum(Count)
+                     , years = length(unique(year))
+                     ) %>%
+    dplyr::ungroup()
   
   
-  # maps ------
-  tmap_mode("view")
+  # summary --------
+  dat_summary <- total_count |>
+    dplyr::left_join(naive_occ)
   
-  map <- dat_sf %>%
-    dplyr::group_by(year) %>%
-    dplyr::summarise() %>%
-    dplyr::ungroup() %>%
-    tm_shape() +
-    tm_dots(col = "year"
-            , palette = "viridis"
-            ) +
-    tm_shape(hec) +
-    tm_polygons(alpha = 0.5)
-  
-  tmap::tmap_save(map, filename = "map.html")
-  
-  facets <- dat_sf %>%
-    dplyr::group_by(year) %>%
-    dplyr::summarise() %>%
-    dplyr::ungroup() %>%
-    tm_shape() +
-    tm_dots() +
-    tm_facets(by = "year") +
-    tm_shape(hec) +
-    tm_polygons(alpha = 0.5)
-
-  tmap_mode("plot")
-  
-  tmap::tmap_save(facets, filename = "facets.png")
-  
-  
-  # year by count -------
-  
-  dat |>
-    dplyr::filter(hab != "oh") |>
-    dplyr::group_by(strCommonName , year) |>
-    dplyr::summarise(n = sum(Count)) |>
-    dplyr::ungroup() |>
-    ggplot(aes(year, n)) +
-    geom_point() +
-    geom_smooth() +
-    facet_wrap(~ strCommonName)
-  
-  # year by cell -------
-  
-  naive_occ |>
-    dplyr::left_join(taxa
-                     , by = c("Species" = "strCode")
-                     ) |>
-    ggplot(aes(year, cells)) +
-    geom_point() +
-    geom_smooth() +
-    facet_wrap(~ strCommonName)
   
   # report -------
   # Clean up previous knits

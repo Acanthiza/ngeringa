@@ -5,25 +5,29 @@ spID <- "{{spID}}"
 
 ```
 
-## `r unique(dat$strCommonName[dat$Species == spID])`
+### `r unique(dat$strCommonName[dat$Species == spID])`
 
-### Map
+#### Map
 
 ```{r map{{spID}}}
 
-naive_occ$data[naive_occ$Species == spID] |>
-  dplyr::bind_rows() |>
+dat_sf |>
+  dplyr::filter(Species == spID) |>
   dplyr::mutate(year = lubridate::year(Date)
                 , year = factor(year)
                 ) |>
-tm_shape() +
+tm_shape(bbox = sf::st_bbox(r_poly)) +
   tm_dots(col = "year"
           , palette = "viridis"
-          )
+          ) +
+  tm_shape(r_poly) +
+  tm_borders(col = "yellow"
+             , alpha = 0.5
+             )
 
 ```
 
-### Plot
+#### Plot
 
 ```{r plot{{spID}}}
 
