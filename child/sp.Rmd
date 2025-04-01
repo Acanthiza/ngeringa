@@ -5,7 +5,62 @@ spID <- "{{spID}}"
 
 ```
 
-### `r unique(dat$strCommonName[dat$Species == spID])`
+```{r data{{spID}}}
+
+dat_sp <- dat |>
+  dplyr::filter(Species == spID)
+
+dat_hab <- dat_sp |>
+  dplyr::filter(!is.na(habitat))
+
+com <- unique(dat$strCommonName[dat$Species == spID])
+sp <- unique(dat$strSpeciesName[dat$Species == spID])
+
+text <- paste0(com
+               , " were most frequently recorded in the habitat type "
+               , dat_hab |> dplyr::count(habitat) |> dplyr::filter(n == max(n)) |> dplyr::pull(habitat)
+               , if(length(unique(dat_hab$habitat)) > 2) paste0(" although they were also recorded in: "
+                                                                , dat_hab |>
+                                                                  dplyr::count(habitat) |>
+                                                                  dplyr::filter(n != max(n)) |>
+                                                                  dplyr::pull(habitat) |>
+                                                                  envFunc::vec_to_sentence()
+                                                                )
+               )
+
+dat_plot <- dat_summary |>
+  dplyr::filter(Species == spID)
+
+text_mod <- if(nrow(dat_plot$data[[1]]) > 3) {
+
+  paste0("There was "
+         , if(dat_plot$p > 0.1) "no " else if(dat_plot$p < 0.01) "excellent " else if(dat_plot$p < 0.05) "good " else if (dat_plot$p < 0.1) "mild "
+         , "statistical support for the"
+         , if(dat_plot$slope > 0) " increase" else " decline"
+         , " in cells with "
+         , com
+         , " across the years surveyed (see plot below)"
+         )
+  
+} else {
+  
+  paste0("There were not enough years with record to estimate a trend in "
+         , com
+         , " (see plot below)"
+         )
+  
+}
+
+
+```
+
+### `r com`
+
+There were `r nrow(dat_sp)` records of `r com` (_`r sp`_).
+
+`r text`.
+
+`r text_mod`.
 
 #### Map
 
@@ -32,17 +87,12 @@ tm_shape(bbox = sf::st_bbox(r_poly)) +
 
 ```{r plot{{spID}}}
 
-dat |>
-  dplyr::filter(hab != "oh"
-                , Species == spID
-                ) |>
-  dplyr::mutate(year = as.numeric(as.character(year))) |>
-  dplyr::group_by(strCommonName, year) |>
-  dplyr::summarise(n = sum(Count)) |>
-  dplyr::ungroup() |>
-  ggplot(aes(year, n)) +
+min_year <- min(dat$year, na.rm = TRUE) |> as.character() |> as.numeric()
+max_year <- max(dat$year, na.rm = TRUE) |> as.character() |> as.numeric()
+
+ggplot(dat_plot$data[[1]], aes(year, cells)) +
   geom_point() +
   geom_smooth(method = "lm") +
-  facet_wrap(~ strCommonName)
+  coord_cartesian(xlim = c(min_year, max_year))
 
 ```

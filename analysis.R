@@ -63,7 +63,11 @@
     dplyr::rename(hab = 1, Habitat = 2) %>%
     dplyr::mutate(Habitat = tolower(gsub("-", "", Habitat))
                   , hab = gsub("Remant", "Remnant", hab)
-                  )
+                  , habitat = tolower(stringr::word(hab, 1, sep = "\\s|-"))
+                  , habitat = gsub("\\bvege\\b", "vegetables", habitat)
+                  , habitat = gsub("power", "stobie pole", habitat)
+                  ) |>
+    dplyr::filter(!grepl("over|heard", habitat))
   
   epsg <- tibble::tribble(
     ~ year, ~ epsg,
@@ -72,8 +76,7 @@
     2021, 28354,
     2023, 3857,
     2024, 3857
-    ) %>%
-    dplyr::mutate(year = factor(year, ordered = TRUE))
+    )
   
   # data -------
   
@@ -96,7 +99,7 @@
                   , time = gsub("\\+10:30|010:30|009:30","",time)
                   , time = hms(time)
                   , year = lubridate::year(date)
-                  , year = factor(year, ordered = TRUE)
+                  #, year = factor(year, ordered = TRUE)
                   ) %>%
     dplyr::mutate(use_hab = gsub("\\s.*|\\-.*|\\/.*", "", hab)) %>%
     dplyr::filter(!is.na(Count))
@@ -119,6 +122,7 @@
                                                             ) %>%
                                        sf::st_transform(crs = 3857)
                                      )
+                  , year = factor(year)
                   ) %>%
     tidyr::unnest(cols = data) %>%
     sf::st_sf()
@@ -173,11 +177,8 @@
                   , cells = purrr::map_dbl(r, \(x) as.numeric(terra::global(x, "sum", na.rm = TRUE)))
                   ) |>
     dplyr::select(-data, - r) |>
-    dplyr::left_join(taxa |>
-                       dplyr::select(Species = strCode
-                                     , Common = strCommonName
-                                     )
-                     )
+    dplyr::mutate(year = as.numeric(as.character(year))) |>
+    tidyr::nest(data = -c(Species))
   
   naive_occ <- dat_sf |>
     tidyr::nest(data = -c(Species)) |>
@@ -201,10 +202,9 @@
   # total count -----
   
   total_count_year <- dat %>%
-    dplyr::group_by(year, Species, strCommonName) %>%
+    dplyr::group_by(year, Species) %>%
     dplyr::summarise(total = sum(Count)) %>%
-    dplyr::ungroup() %>%
-    tidyr::pivot_wider(values_from = "total", names_from = "year")
+    dplyr::ungroup()
   
   total_count <- dat %>%
     dplyr::group_by(Species, strCommonName) %>%
@@ -216,7 +216,17 @@
   
   # summary --------
   dat_summary <- total_count |>
-    dplyr::left_join(naive_occ)
+    dplyr::left_join(naive_occ) |>
+    dplyr::left_join(naive_occ_year) |>
+    dplyr::mutate(mod = purrr::map(data, \(x) if(nrow(x) > 3) lm(cells ~ year, data = x) else NULL)) |>
+    dplyr::mutate(p = purrr::map_dbl(mod, \(x) if(!is.null(x)) anova(x)$`Pr(>F)`[1] else NA)
+                  , slope = purrr::map_dbl(mod, \(x) if(!is.null(x)) x$coefficients[2] else NA)
+                  ) |>
+    dplyr::mutate(trend = dplyr::case_when(slope < 0 & p < 0.05 ~ "decrease"
+                                           , slope > 0 & p < 0.05 ~ "increase"
+                                           , TRUE ~ "stable"
+                                           )
+                  )
   
   
   # report -------
