@@ -41,13 +41,13 @@ tm_shape(dat_sf) +
           , palette = "plasma"
           )
 
-cat("<fig>"
+cat("<figure>"
     , paste0("<caption>"
              , "(#fig:map)"
              , "Map of where records were taken"
              , "</caption>"
              )
-    , "</fig>"
+    , "</figure>"
     , sep ="\n"
     )
 
