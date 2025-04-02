@@ -28,30 +28,12 @@ text <- paste0(com
                                                                        )
                )
 
-dat_plot <- dat_summary |>
-  dplyr::filter(Species == spID)
-
-text_mod <- if(nrow(dat_plot$data[[1]]) > 3) {
-
-  paste0("There was "
-         , if(dat_plot$p > 0.1) "no " else if(dat_plot$p < 0.01) "very good " else if(dat_plot$p < 0.05) "good " else if (dat_plot$p < 0.1) "weak "
-         , "statistical support (p = "
-         , round(dat_plot$p, 3)
-         , ") for the"
-         , if(dat_plot$slope > 0) " increasing" else " decreasing"
-         , " trend in "
-         , com
-         )
-  
-} else {
-  
-  paste0("There were not enough years with record to estimate a trend in "
-         , com
-         , " (see plot below)"
-         )
-  
-}
-
+text_mod <- paste0("The trend in number of cells with a "
+                   , com
+                   , " record was '"
+                   , dat_summary$trend[dat_summary$Species == spID]
+                   , "'"
+                   )
 
 ```
 
@@ -108,13 +90,7 @@ dat_hab |>
 
 ```{r plot{{spID}}, fig.cap = paste0("Cells with ", com, " over the years")}
 
-min_year <- min(dat$year, na.rm = TRUE) |> as.character() |> as.numeric()
-max_year <- max(dat$year, na.rm = TRUE) |> as.character() |> as.numeric()
-
-ggplot(dat_plot$data[[1]], aes(year, cells)) +
-  geom_point() +
-  geom_smooth(method = "lm") +
-  coord_cartesian(xlim = c(min_year, max_year))
+ dat_summary$mod[dat_summary$Species == spID][[1]]$plot
 
 ```
 

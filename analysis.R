@@ -24,6 +24,8 @@
                 , "knitr"
                 , "rmarkdown"
                 , "bookdown"
+                , "DT"
+                , "kableExtra"
                 
                 # env
                 , "envFunc"
@@ -34,6 +36,8 @@
                           , bib = TRUE
                           , file = "packages.bib"
                           )
+  
+  targets::tar_source()
   
   # setup -------
   tmap::tmap_mode("view")
@@ -103,6 +107,9 @@
                   ) %>%
     dplyr::mutate(use_hab = gsub("\\s.*|\\-.*|\\/.*", "", hab)) %>%
     dplyr::filter(!is.na(Count))
+  
+  spp_year <- tibble::tibble(year = unique(dat$year)) |>
+    dplyr::cross_join(tibble::tibble(Species = unique(dat$Species)))
   
   dat_sf <- dat %>%
     dplyr::mutate(old_east = East
@@ -177,7 +184,9 @@
                   , cells = purrr::map_dbl(r, \(x) as.numeric(terra::global(x, "sum", na.rm = TRUE)))
                   ) |>
     dplyr::select(-data, - r) |>
-    dplyr::mutate(year = as.numeric(as.character(year))) |>
+    dplyr::mutate(year = as.numeric(as.character(year))) %>%
+    dplyr::right_join(spp_year) |>
+    dplyr::mutate(cells = dplyr::if_else(is.na(cells), 0 , cells)) |>
     tidyr::nest(data = -c(Species))
   
   naive_occ <- dat_sf |>
@@ -218,14 +227,8 @@
   dat_summary <- total_count |>
     dplyr::left_join(naive_occ) |>
     dplyr::left_join(naive_occ_year) |>
-    dplyr::mutate(mod = purrr::map(data, \(x) if(nrow(x) > 3) lm(cells ~ year, data = x) else NULL)) |>
-    dplyr::mutate(p = purrr::map_dbl(mod, \(x) if(!is.null(x)) anova(x)$`Pr(>F)`[1] else NA)
-                  , slope = purrr::map_dbl(mod, \(x) if(!is.null(x)) x$coefficients[2] else NA)
-                  ) |>
-    dplyr::mutate(trend = dplyr::case_when(slope < 0 & p < 0.05 ~ "decrease"
-                                           , slope > 0 & p < 0.05 ~ "increase"
-                                           , TRUE ~ "stable"
-                                           )
+    dplyr::mutate(mod = purrr::map(data, \(x) make_mod(x))
+                  , trend = purrr::map_chr(mod, \(x) tolower(x$trend))
                   )
   
   

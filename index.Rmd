@@ -1,12 +1,12 @@
 ---
-title: "ngeringa bird surveys"
+title: "Ngeringa bird surveys"
 author:
 - Nigel Willoughby
 - Jody Gates
 date: "`r format(Sys.time(), '%A, %d %B, %Y. %H:%M')`"
 link-citations: yes
 bibliography: packages.bib
-description: "Results of bird surveys on ngeringa"
+description: "Results of bird surveys on Ngeringa"
 ---
 
 ```{r setup, echo = FALSE, warning = FALSE, error = FALSE, message = FALSE}
@@ -66,5 +66,5 @@ description: "Results of bird surveys on ngeringa"
 
 # Aim
 
-A dive into the bird data collected on ngeringa.
+A dive into the bird data collected on Ngeringa.
 
