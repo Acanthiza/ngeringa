@@ -42,7 +42,7 @@ make_mod <- function(data) {
     
     res$plot <- ggplot() +
       geom_line(data = res$results
-                , aes(year, mean, col = "prediction")
+                , aes(year, median, col = "prediction")
                 ) +
       geom_ribbon(data = res$results
                   , aes(x = year
@@ -57,7 +57,14 @@ make_mod <- function(data) {
                  ) +
       labs(y = "cells")
     
-  } else res <- list(sign_year = "unknown", like_year = NA, likelihood = "Unknown", trend = "unknown")
+  } else res <- list(sign_year = "unknown", like_year = NA, likelihood = "Unknown", trend = "unknown"
+                     , plot = {
+                       
+                       ggplot(data, aes(year, cells)) +
+                         geom_point()
+                       
+                       }
+                     )
   
   return(res)
   
