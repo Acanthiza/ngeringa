@@ -2,17 +2,17 @@
 
 ## Surveys
 
-Surveys occurred in the morning on one day in spring. Survey were occurred in each of `r length(unique(lubridate::year(dat$Date)))` years: `r envFunc::vec_to_sentence(unique(lubridate::year(dat$Date)))`.
+Surveys occurred in the morning on one day in spring. A survey occurred in each of `r length(unique(lubridate::year(dat$Date)))` years: `r envFunc::vec_to_sentence(unique(lubridate::year(dat$Date)))`.
 
 All individual birds were recorded directly into [Avenza](https://store.avenza.com/pages/app-features).
 
 ## Analysis
 
-
+For species recorded in enough years, Bayesian generalised linear models were used to estimate any trend in number of cells in which records were taken in each year using the rstanarm package `r cite_package("rstanarm")` in R `r cite_package("base")`. Trends were assigned following the likelihood definitions and ranges of the intergovernmental panel on climate change [IPCC](https://www.ipcc.ch/site/assets/uploads/2017/08/AR5_Uncertainty_Guidance_Note.pdf). 
 
 ## Workflow
 
-The data import, cleaning, analysis and report writing were done in a scripted workflow using the programs `R` and 'R-studio Desktop'. [`R`](https://www.r-project.org/) [@R-base] is an open source software environment for statistical computing and graphics. Base R can be extended via a range of open source packages to enable specific tasks or analyses. The packages used to produce this report are listed in Table \@ref(tab:packages).
+The data import, cleaning, analysis and report writing were done in a scripted workflow using the programs `R` and 'R-studio Desktop'. [`R`](https://www.r-project.org/) `r cite_package("base")` is an open source software environment for statistical computing and graphics. Base R can be extended via a range of open source packages to enable specific tasks or analyses. The packages used to produce this report are listed in Table \@ref(tab:packages).
 
 [R-studio Desktop](https://posit.co/download/rstudio-desktop/) is a set of open source tools built to facilitate interaction with `R`.
 

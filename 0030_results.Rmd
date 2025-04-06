@@ -4,11 +4,11 @@
 ```{r resultsText}
 
 inc_spp <- dat_summary |>
-  dplyr::filter(trend == "increase") |>
+  dplyr::filter(grepl("increase", trend)) |>
   dplyr::pull(Common)
 
 dec_spp <- dat_summary |>
-  dplyr::filter(trend == "decrease") |>
+  dplyr::filter(grepl("decrease", trend)) |>
   dplyr::pull(Common)
 
 ```
@@ -17,7 +17,7 @@ dec_spp <- dat_summary |>
 
 There were `r nrow(dat_summary)` different species recorded across the `r length(unique(dat$year))` years with data. The most common species was `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(Common)` with `r dat_summary |> dplyr::filter(records == max(records)) |> dplyr::pull(records)` records.
 
-`r length(inc_spp) |> envFunc::numbers2words() |> stringr::str_to_sentence()` species appeared to increase over the years of the study`r if(length(inc_spp)) paste0(" (", envFunc::vec_to_sentence(inc_spp), ")")`, while `r length(dec_spp) |> envFunc::numbers2words()` species showed a decrease`r if(length(dec_spp)) paste0(" (", envFunc::vec_to_sentence(dec_spp), ")")`.
+There were `r dat_summary |> dplyr::filter(! grepl("unknown", trend)) |> nrow()` species with enough data to estimate a trend. `r length(inc_spp) |> envFunc::numbers2words() |> stringr::str_to_sentence()` species appeared to increase over the years of the study`r if(length(inc_spp)) paste0(" (", envFunc::vec_to_sentence(inc_spp), ")")`, while `r length(dec_spp) |> envFunc::numbers2words()` species showed a decrease`r if(length(dec_spp)) paste0(" (", envFunc::vec_to_sentence(dec_spp), ")")`. Given the single survey per year these 'trends' should be considered indicative at best, or more likely the result of detectability issues (the species is using the site within that year, but is not detected because either: individuals of the species are in another part of their home range during the survey window; or the observer misses the species even though it is there).
 
 The table below shows the:
 
@@ -25,7 +25,7 @@ The table below shows the:
 * total number of records for a species
 * number of years in which a species was recorded; and
 * the number of cells in which a species was recorded
-* guestimate of trend for the species, based on a linear model fitted to the number of cells by year
+* guestimate of trend for the species, based on a model fitted to the number of cells by year
 
 Each cell was `r ras_res` by `r ras_res` metres.
 

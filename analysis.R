@@ -29,6 +29,7 @@
                 
                 # env
                 , "envFunc"
+                , "envReport"
                 )
   
   envFunc::check_packages(packages

@@ -1,6 +1,6 @@
 make_mod <- function(data) {
   
-  if(sum(data$cells > 0) > 3) {
+  if(sum(data$cells > 0) > 4) {
   
     # stan options
     options(mc.cores = 1)
@@ -10,7 +10,7 @@ make_mod <- function(data) {
     
     res$mod <- rstanarm::stan_glm(cells ~ year
                                   , data = data
-                                  , family = rstanarm::neg_binomial_2()
+                                  , family = poisson()
                                   )
     
     
@@ -42,7 +42,7 @@ make_mod <- function(data) {
     
     res$plot <- ggplot() +
       geom_line(data = res$results
-                , aes(year, median, col = "prediction")
+                , aes(year, median, col = "model")
                 ) +
       geom_ribbon(data = res$results
                   , aes(x = year
